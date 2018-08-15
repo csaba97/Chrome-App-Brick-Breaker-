@@ -1,5 +1,5 @@
 {
-  "name": "Hello World!",
+  "name": "Brick Breaker",
   "description": "My first Chrome App.",
   "version": "0.1",
   "manifest_version": 2,
@@ -8,5 +8,5 @@
       "scripts": ["background.js"]
     }
   },
-  "icons": { "16": "calculator-16.png", "128": "calculator-128.png" }
+  "icons": { "16": "icon16.png", "128": "icon128.png" }
 }
