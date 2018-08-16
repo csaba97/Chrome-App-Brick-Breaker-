@@ -144,7 +144,7 @@ function moveBall(){
     case 90:y-=speed; break;
     case 135:x-=speed;y-=speed; break;
     case 180:x-=speed; break;
-    case 225:x+=speed;y+=speed; break;
+    case 225:x-=speed;y+=speed; break;
     case 270:y+=speed; break;
     case 315:x+=speed;y+=speed; break;
   }
@@ -152,21 +152,25 @@ function moveBall(){
   if(x>canvas.width){
     x = canvas.width;
     if(direction === 315) direction = 225;
-    if(direction === 45) direction = 135;
+    else if(direction === 45) direction = 135;
   }
+
   if(x<0){
     x = 0;
     if(direction === 225) direction = 315;
-    if(direction === 135) direction = 45;
+    else if(direction === 135) direction = 45;
   }
+
   if(y>canvas.height){
     y = canvas.height;
     if(direction === 315) direction = 45;
-    if(direction === 225) direction = 135;
+    else if(direction === 225) direction = 135;
   }
+
   if(y<0){
+    console.log("y<0, dir="+direction)
     if(direction === 135) direction = 225;
-    if(direction === 45) direction = 315;
+    else if(direction === 45) direction = 315;
     y=0;
   }
 
