@@ -1,25 +1,38 @@
 var myGamePiece;
 var myObstacles = [];
-var myScore;
+var score = 0;
 var canvas = document.createElement("canvas");
-canvas.width = 480;
-canvas.height = 600;
-var context=canvas.getContext("2d");;
-context.fillStyle="#FF00FF";
-var paddleWitdh=60, paddleHeight=20;
-var paddleX = canvas.width/2, paddleY=canvas.height - 40;
+initialiseCanvas();
+var context=canvas.getContext("2d");
+initialiseCanvasContext();
+
+var paddle = {
+  paddleWitdh : 60,
+  paddleHeight : 20,
+  posX : canvas.width/2,
+  posY : canvas.height - 40,
+}
 
 window.addEventListener("load", startGame);
 window.onload = function() {
   document.body.insertBefore(canvas, document.body.childNodes[0]);
   canvas.onmousemove=function(evt){
-  var mousePos = getMousePos(canvas, evt);
-  paddleX = mousePos.x;
+    var mousePos = getMousePos(evt);
+    movePaddle(mousePos.x);
   };
 };
 
-function initialiseCanvas(){
+function movePaddle(x){
+  paddle.posX = x;
+}
 
+function initialiseCanvas(){
+  canvas.width = 480;
+  canvas.height = 600;
+}
+
+function initialiseCanvasContext(){
+  context.fillStyle="#FF00FF";
 }
 
 function writeMessage(canvas, message) {
@@ -30,7 +43,7 @@ function writeMessage(canvas, message) {
         context.fillText(message, 10, 25);
   }
 
-function getMousePos(canvas, evt) {
+function getMousePos(evt) {
         var rect = canvas.getBoundingClientRect();
         return {
           x: evt.clientX - rect.left,
@@ -45,12 +58,14 @@ function startGame() {
 
 
 function drawScene(){
-  context.fillRect(paddleX-paddleWitdh/2, paddleY, paddleWitdh, paddleHeight);
+  context.fillRect(paddle.posX-paddle.paddleWitdh/2, paddle.posY, paddle.paddleWitdh, paddle.paddleHeight);
 }
 
 function updateGameArea() {
     drawScene();
-    setInterval(function(){ clearScreen();drawScene(); }, 50);
+    var fps=60;
+    var refresh=1000/fps;
+    setInterval(function(){ clearScreen();drawScene(); }, refresh);
 }
 
 
