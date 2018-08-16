@@ -1,5 +1,3 @@
-var myGamePiece;
-var myObstacles = [];
 var score = 0;
 var canvas = document.createElement("canvas");
 initialiseCanvas();
@@ -42,10 +40,12 @@ var paddle = {
 var ball = {
   diameter : 20,
   posX : paddle.posX,
-  posY : paddle.posY-10,
-  direction : 45,
+  posY : paddle.posY-11,
+  direction : 135,
   speed : 15
 }
+
+
 
 window.addEventListener("load", startGame);
 window.onload = function() {
@@ -56,12 +56,15 @@ window.onload = function() {
   };
 };
 
+canvas.onmousedown = function(e){
+    updateGameplay();
+}
+
 function startGame() {
   writeMessage("Score: "+score);
-  drawBall();
   drawPaddle();
+  drawBall();
   drawSceneBricks();
-  updateGameplay();
 }
 
 function initialiseCanvas(){
@@ -71,6 +74,15 @@ function initialiseCanvas(){
 
 function initialiseCanvasContext(){
   context.fillStyle="#FFFFFF";
+}
+
+
+function getMousePos(evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
 }
 
 function writeMessage(message) {
@@ -98,13 +110,15 @@ function movePaddle(x){
   drawPaddle();
 }
 
-function getMousePos(evt) {
-        var rect = canvas.getBoundingClientRect();
-        return {
-          x: evt.clientX - rect.left,
-          y: evt.clientY - rect.top
-        };
-      }
+
+function clearBall(){
+    context.clearRect(ball.posX-ball.diameter/2-1, ball.posY-ball.diameter/2-1, ball.diameter+2, ball.diameter+2);
+    /*context.fillStyle = "#FFFFFF";
+    context.beginPath();
+    context.arc(ball.posX,ball.posY,ball.diameter/2,0,2*Math.PI);
+    context.fill();*/
+}
+
 
 function drawSceneBricks(){
   var arr=level1;
@@ -128,12 +142,8 @@ function updateGameplay(){
   setInterval(function(){ clearBall();moveBall();drawBall(); }, refresh);
 }
 
-function clearBall(){
-
-}
 
 function moveBall(){
-
   var x = ball.posX, y = ball.posY;
   var speed = ball.speed;
   var direction = ball.direction;
@@ -168,7 +178,6 @@ function moveBall(){
   }
 
   if(y<0){
-    console.log("y<0, dir="+direction)
     if(direction === 135) direction = 225;
     else if(direction === 45) direction = 315;
     y=0;
