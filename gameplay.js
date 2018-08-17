@@ -1,3 +1,5 @@
+var fps = 30;
+var gameStarted = false;
 var score = 0;
 var canvas = document.createElement("canvas");
 initialiseCanvas();
@@ -11,11 +13,11 @@ var level1 = [
   [6,0,1,0,0,1,1],
   [7,0,1,3,3,1,1],
   [8,8,9,0,2,1,1],
-]
+];
 var brick = {
   width : 60,
   height : 20,
-}
+};
 
 
 var colorsBrick = {
@@ -28,26 +30,36 @@ var colorsBrick = {
   7 : "violet",
   8 : "StateBlue",
   9 : "gray",
-}
+};
 
 var paddle = new function(){
   this.width = 60,
   this.height = 20,
   this.posX = canvas.width/2,//center
-  this.posY = canvas.height - 40,//upper coordinate(yMin)
-  this.boundingBox = new boundingBox(this.posX-this.width/2,this.posY,this.posX+this.width/2,this.posY+this.height)
-}
+  this.posY = canvas.height - 40 //upper coordinate(yMin)
+};
+
+Object.defineProperty(paddle, "boundingBox", {
+    get: function() {
+        return new BoundingBox(this.posX-this.width/2,this.posY,this.posX+this.width/2,this.posY+this.height);
+    }
+});
 
 var ball = new function(){
     this.diameter = 20,
     this.posX = paddle.posX,
     this.posY = paddle.posY-11,
     this.direction = 135,
-    this.speed = 15
-    this.boundingBox = new boundingBox(this.posX-this.diameter/2,this.posY-this.diameter/2,this.posX+this.diameter/2,this.posY+this.diameter/2)
+    this.speed = 5
 }
 
-function boundingBox(xMin,yMin, xMax, yMax){
+Object.defineProperty(ball, "boundingBox", {
+    get: function() {
+        return new BoundingBox(this.posX-this.diameter/2,this.posY-this.diameter/2,this.posX+this.diameter/2,this.posY+this.diameter/2);
+    }
+});
+
+function BoundingBox(xMin,yMin, xMax, yMax){
   this.xMin=xMin;
   this.yMin=yMin;
   this.xMax=xMax;
@@ -65,7 +77,10 @@ window.onload = function() {
 };
 
 canvas.onmousedown = function(e){
-    updateGameplay();
+    if(gameStarted === false){
+        gameStarted=true;
+        updateGameplay();
+    }
 }
 
 function startGame() {
@@ -94,22 +109,22 @@ function getMousePos(evt) {
 }
 
 function writeMessage(message) {
-        context.clearRect(0, 0, 10, 25);
-        context.font = '18pt Calibri';
-        context.fillStyle = 'black';
-        context.fillText(message, 10, 25);
+    context.clearRect(0, 0, 10, 25);
+    context.font = '18pt Calibri';
+    context.fillStyle = 'black';
+    context.fillText(message, 10, 25);
 }
 
 function drawBall(){
-  context.fillStyle = "rgb(51,51,0)";
-  context.beginPath();
-  context.arc(ball.posX,ball.posY,ball.diameter/2,0,2*Math.PI);
-  context.fill();
+    context.fillStyle = "rgb(51,51,0)";
+    context.beginPath();
+    context.arc(ball.posX,ball.posY,ball.diameter/2,0,2*Math.PI);
+    context.fill();
 }
 
 function drawPaddle(){
-  context.fillStyle = "rgb(0,51,0)";
-  context.fillRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
+    context.fillStyle = "rgb(0,51,0)";
+    context.fillRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
 }
 
 function movePaddle(x){
@@ -121,10 +136,6 @@ function movePaddle(x){
 
 function clearBall(){
     context.clearRect(ball.posX-ball.diameter/2-1, ball.posY-ball.diameter/2-1, ball.diameter+2, ball.diameter+2);
-    /*context.fillStyle = "#FFFFFF";
-    context.beginPath();
-    context.arc(ball.posX,ball.posY,ball.diameter/2,0,2*Math.PI);
-    context.fill();*/
 }
 
 
@@ -145,7 +156,7 @@ function drawSceneBricks(){
 }
 
 function updateGameplay(){
-  var fps=10;
+  ball.speed = ball.speed * (60/fps);
   var refresh=1000/fps;
   setInterval(function(){ clearBall();moveBall();drawBall(); }, refresh);
 }
@@ -167,6 +178,7 @@ function moveBall(){
     case 315:x+=speed;y+=speed; break;
   }
 
+  //check if ball is outsede canvas
   if(x>canvas.width){
     x = canvas.width;
     if(direction === 315) direction = 225;
@@ -191,19 +203,29 @@ function moveBall(){
     y=0;
   }
 
+  //check if ball collides with paddle
+  if(onCollide(ball.boundingBox, paddle.boundingBox) === true){
+      if(direction === 225) direction = 135;
+      else if(direction === 315) direction = 45;
+      //move ball outside of the paddle
+      y = paddle.posY - 11;
+      //redraw paddle
+      movePaddle(paddle.posX);
+  }
+
   ball.posX = x;
   ball.posY = y;
   ball.direction = direction;
 }
 
 function onCollide(bbox1, bbox2){
-    if(pointInBoundingBox(bbox.xMin,bbox.yMin)===true)
+    if(pointInBoundingBox(bbox1.xMin,bbox1.yMin,bbox2)===true)
         return true;
-    if(pointInBoundingBox(bbox.xMin,bbox.yMax)===true)
+    if(pointInBoundingBox(bbox1.xMin,bbox1.yMax,bbox2)===true)
         return true;
-    if(pointInBoundingBox(bbox.xMax,bbox.yMin)===true)
+    if(pointInBoundingBox(bbox1.xMax,bbox1.yMin,bbox2)===true)
         return true;
-    if(pointInBoundingBox(bbox.xMax,bbox.yMax)===true)
+    if(pointInBoundingBox(bbox1.xMax,bbox1.yMax,bbox2)===true)
         return true;
     return false;
 }
