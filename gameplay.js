@@ -1,6 +1,9 @@
-var fps = 30;
+var fps = 60;
 var gameStarted = false;
 var score = 0;
+var pause = false;
+var startingBricksPositionX = 20;
+var startingBricksPositionY = 40;
 var canvas = document.createElement("canvas");
 initialiseCanvas();
 var context=canvas.getContext("2d");
@@ -82,6 +85,10 @@ canvas.onmousedown = function(e){
         updateGameplay();
     }
 }
+window.onkeyup = function(e){
+    if(e.key === "p")
+        pause = !pause;
+}
 
 function startGame() {
   writeMessage("Score: "+score);
@@ -127,22 +134,19 @@ function drawPaddle(){
     context.fillRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
 }
 
-function movePaddle(x){
-  context.clearRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
-  paddle.posX = x;
-  drawPaddle();
-}
 
 
 function clearBall(){
     context.clearRect(ball.posX-ball.diameter/2-1, ball.posY-ball.diameter/2-1, ball.diameter+2, ball.diameter+2);
 }
 
-
+function clearSceneBricks(){
+    context.clearRect(0, 0, canvas.width, canvas.height/2);
+}
 function drawSceneBricks(){
   var arr=level1;
-  var startingPositionX = 20;
-  var startingPositionY = 40;
+  var startingPositionX = startingBricksPositionX;
+  var startingPositionY = startingBricksPositionY;
   for (var i=0, len=arr.length; i<len; i++) {
     for (var j=0, len2=arr[i].length; j<len2; j++) {
         if(arr[i][j]!==0){
@@ -158,9 +162,23 @@ function drawSceneBricks(){
 function updateGameplay(){
   ball.speed = ball.speed * (60/fps);
   var refresh=1000/fps;
-  setInterval(function(){ clearBall();moveBall();drawBall(); }, refresh);
+  setInterval(function(){
+      if(!pause) {
+          clearBall();
+          moveBall();
+          drawBall();
+      }
+      }, refresh);
 }
 
+
+function movePaddle(x){
+    if(!pause){
+        context.clearRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
+        paddle.posX = x;
+        drawPaddle();
+    }
+}
 
 function moveBall(){
   var x = ball.posX, y = ball.posY;
@@ -178,7 +196,7 @@ function moveBall(){
     case 315:x+=speed;y+=speed; break;
   }
 
-  //check if ball is outsede canvas
+  //check if ball is outside canvas
   if(x>canvas.width){
     x = canvas.width;
     if(direction === 315) direction = 225;
@@ -212,6 +230,23 @@ function moveBall(){
       //redraw paddle
       movePaddle(paddle.posX);
   }
+  //check if ball collides with a brick
+  //first calculate the position of the ball corresponding to the 2d array where the
+  //bricks are stored
+  var positionArrayX = Math.floor((x - startingBricksPositionX)/brick.width);
+  var positionArrayY = Math.floor((y - startingBricksPositionY)/brick.height);
+  if(positionArrayX >=0 && positionArrayX < level1[1].length)
+      if(positionArrayY >=0 && positionArrayY < level1.length)
+          if(level1[positionArrayY][positionArrayX]>0){
+              //collision
+              level1[positionArrayY][positionArrayX] = 0;
+              console.log("collision with "+positionArrayY+" "+positionArrayX);
+              clearSceneBricks();
+              drawSceneBricks();
+              //calculate new position for the ball
+
+          }
+
 
   ball.posX = x;
   ball.posY = y;
