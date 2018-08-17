@@ -30,21 +30,29 @@ var colorsBrick = {
   9 : "gray",
 }
 
-var paddle = {
-  width : 60,
-  height : 20,
-  posX : canvas.width/2,
-  posY : canvas.height - 40,
+var paddle = new function(){
+  this.width = 60,
+  this.height = 20,
+  this.posX = canvas.width/2,//center
+  this.posY = canvas.height - 40,//upper coordinate(yMin)
+  this.boundingBox = new boundingBox(this.posX-this.width/2,this.posY,this.posX+this.width/2,this.posY+this.height)
 }
 
-var ball = {
-  diameter : 20,
-  posX : paddle.posX,
-  posY : paddle.posY-11,
-  direction : 135,
-  speed : 15
+var ball = new function(){
+    this.diameter = 20,
+    this.posX = paddle.posX,
+    this.posY = paddle.posY-11,
+    this.direction = 135,
+    this.speed = 15
+    this.boundingBox = new boundingBox(this.posX-this.diameter/2,this.posY-this.diameter/2,this.posX+this.diameter/2,this.posY+this.diameter/2)
 }
 
+function boundingBox(xMin,yMin, xMax, yMax){
+  this.xMin=xMin;
+  this.yMin=yMin;
+  this.xMax=xMax;
+  this.yMax=yMax;
+}
 
 
 window.addEventListener("load", startGame);
@@ -186,4 +194,22 @@ function moveBall(){
   ball.posX = x;
   ball.posY = y;
   ball.direction = direction;
+}
+
+function onCollide(bbox1, bbox2){
+    if(pointInBoundingBox(bbox.xMin,bbox.yMin)===true)
+        return true;
+    if(pointInBoundingBox(bbox.xMin,bbox.yMax)===true)
+        return true;
+    if(pointInBoundingBox(bbox.xMax,bbox.yMin)===true)
+        return true;
+    if(pointInBoundingBox(bbox.xMax,bbox.yMax)===true)
+        return true;
+    return false;
+}
+
+function pointInBoundingBox(x,y,bbox){
+    if(x>bbox.xMin && x<bbox.xMax && y>bbox.yMin && y < bbox.yMax)
+        return true;
+    return false;
 }
