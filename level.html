@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Level</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <style>
         canvas {
             border:1px solid #d3d3d3;
@@ -11,6 +14,14 @@
     </style>
 </head>
 <body>
+<button onclick="location.href='window.html'" type="button" width = "120" class="btn btn-default" style="position: absolute; top:0px; left:200px;">
+    <span class="glyphicon glyphicon-home"></span> Home
+</button>
+<canvas id="gameCanvas" width = "480" height = "600" style="position: absolute; top:0; left:0;">
+
+
+</canvas>
+
 <script src="gameplay.js"></script>
 
 </body>
