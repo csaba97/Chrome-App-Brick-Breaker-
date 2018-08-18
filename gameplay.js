@@ -28,11 +28,22 @@ var levels =[
     {
         arr : [
             [0,0,0,0,0,0,0],
-            [9,9,9,9,9,9,0],
+            [9,9,9,9,9,9,1],
             [0,0,0,0,0,0,0],
-            [0,9,9,9,9,9,9],
+            [0,9,9,9,9,9,0],
             [0,0,0,0,0,0,0],
             [9,9,9,9,9,9,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [2,0,2,0,2,0,2],
+            [0,2,0,2,0,2,0],
+            [2,0,2,0,2,0,2],
+            [0,2,0,2,0,2,0],
+            [2,0,2,0,2,0,2],
+            [1,2,3,4,3,2,1],
         ],
         nrBricks : 0
     }
@@ -165,11 +176,11 @@ function chooseLevel(){
     currentLevelObject = levels[currentLevelNumber];
     //count number of bricks
     var arr = currentLevelObject.arr;
-    var nrBricks = currentLevelObject.nrBricks;
+    var nrBricks = 0;
 
     for (var i=0, len=arr.length; i<len; i++)
         for (var j=0, len2=arr[i].length; j<len2; j++)
-            if(arr[i][j]>0)
+            if(arr[i][j]>0 && arr[i][j]!==9)//brick with number 9 is unbreakable
                 nrBricks ++;
 
     currentLevelObject.nrBricks = nrBricks;
