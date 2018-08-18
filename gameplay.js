@@ -81,7 +81,7 @@ var ball = new function(){
 
 Object.defineProperty(ball, "boundingBox", {
     get: function() {
-        return new BoundingBox(this.posX-this.diameter/2-2,this.posY-this.diameter/2-2,this.posX+this.diameter/2+4,this.posY+this.diameter/2+4);
+        return new BoundingBox(this.posX-this.diameter/2-1,this.posY-this.diameter/2-1,this.posX+this.diameter/2+2,this.posY+this.diameter/2+2);
     }
 });
 
@@ -263,17 +263,10 @@ function updateGameplay(){
           writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
           clearBall();
           moveBall();
+          redrawBricksAroundBall();
           drawBall();
       }
       }, refresh);
-
-
-    setInterval(function(){
-        if(!pause) {
-            clearSceneBricks();
-            drawSceneBricks();
-        }
-    }, 200);
 }
 
 
@@ -310,6 +303,31 @@ function moveBall(){
   calcDirOnPaddleCollision();
 
   checkIfCollisionWithBrick();
+}
+
+function redrawBricksAroundBall(){
+    //only draw back brick - no need to clear it
+    var x = ball.posX;
+    var y = ball.posY;
+    if(y < canvas.height/2) {
+        var maxDistance = 80;
+        var startingPositionX = startingBricksPositionX;
+        var startingPositionY = startingBricksPositionY;
+        for (var i = 0; i < bricks.length; i++) {
+            var currBrick = bricks[i];
+            if (Math.abs(currBrick.posX - x) < maxDistance && Math.abs(currBrick.posY - y) < maxDistance) {
+                //redraw this brick
+                context.beginPath();
+                context.fillStyle = colorsBrick[currBrick.type];
+                context.fillRect(startingPositionX + currBrick.posArrayX * brick.width,
+                    startingPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+                context.rect(startingPositionX + currBrick.posArrayX * brick.width,
+                    startingPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+                context.stroke();
+                context.closePath();
+            }
+        }
+    }
 }
 
 function checkIfCollisionWithBrick(){
