@@ -1,20 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<style>
-canvas {
-    border:1px solid #d3d3d3;
-    background-color: #f1f1f1;
-}
-</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        body{
+            margin-left: 40px;
+        }
+        p{
+            font-size: 20px;
+        }
+        li{
+            font-size: 20px;
+        }
+        .scrollable-menu {
+            height: auto;
+            max-height: 200px;
+            overflow-x: hidden;
+        }
+    </style>
+
 </head>
 
-<body>
-<script src="gameplay.js"></script>
+
+<body onload=appendLevelsToList()>
+<h1>Brick Breaker game</h1>
+<br>
+<div>
+    <ul>
+        <li>Press the Left mouse button to fire the ball</li>
+        <li>Move the paddle to left or right with the mouse</li>
+        <li>Use P to pause the game</li>
+        <li>Your progress will be saved during gameplays<br>
+        but you can play your favourite level choosing it<br>
+            from this dropdown menu</li>
+    </ul>
+</div>
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose Level
+        <span class="caret"></span></button>
+    <ul id="levelList" class="dropdown-menu scrollable-menu" role="menu">
+    </ul>
+</div>
+
+
 
 <br>
+<p>If you want to continue where you left, press the START button</p>
+<br>
+<button type="button" class="btn btn-primary" onclick="location.href='level.html'">START</button>
 
 
+
+<script>
+    function appendLevelsToList() {
+        var ul = document.getElementById("levelList");
+        for(var i=0 ;i< 20 ;i++) {
+            var li = document.createElement("li");
+            var link = document.createElement("a");
+            link.appendChild(document.createTextNode("Level "+i));
+            link.href = 'level.html?level='+i;
+            li.appendChild(link);
+            ul.appendChild(li);
+        }
+    }
+</script>
 </body>
 </html>

@@ -2,6 +2,10 @@ var fps = 60;
 var gameStarted = false;
 var score = 0;
 var pause = false;
+var gameOver = false;
+var thisLevelWasChosen = false;
+var currentLevelNumber = 0;
+var currentLevelObject ;
 var startingBricksPositionX = 20;
 var startingBricksPositionY = 40;
 var canvas = document.createElement("canvas");
@@ -10,18 +14,47 @@ var context=canvas.getContext("2d");
 initialiseCanvasContext();
 
 
-var level1 = [
-  [1,0,4,4,0,1,1],
-  [5,4,1,2,2,1,1],
-  [6,0,1,0,0,1,1],
-  [7,0,1,3,3,1,1],
-  [8,8,9,0,2,1,1],
+var levels =[
+    {
+        arr : [
+            [0,2,2,2,2,2,0],
+            [0,2,0,0,0,2,0],
+            [0,2,0,7,0,2,0],
+            [0,2,0,0,0,2,0],
+            [7,2,2,2,2,2,7],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,0,0,0,0,0,0],
+            [9,9,9,9,9,9,1],
+            [0,0,0,0,0,0,0],
+            [0,9,9,9,9,9,0],
+            [0,0,0,0,0,0,0],
+            [9,9,9,9,9,9,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [2,0,2,0,2,0,2],
+            [0,2,0,2,0,2,0],
+            [2,0,2,0,2,0,2],
+            [0,2,0,2,0,2,0],
+            [2,0,2,0,2,0,2],
+            [1,2,3,4,3,2,1],
+        ],
+        nrBricks : 0
+    }
 ];
+
 var brick = {
   width : 60,
   height : 20,
 };
 
+var bricks =[];
 
 var colorsBrick = {
   1 : "blue",
@@ -54,11 +87,12 @@ var ball = new function(){
     this.posY = paddle.posY-11,
     this.direction = 135,
     this.speed = 5
+    this.fired = false;
 }
 
 Object.defineProperty(ball, "boundingBox", {
     get: function() {
-        return new BoundingBox(this.posX-this.diameter/2,this.posY-this.diameter/2,this.posX+this.diameter/2,this.posY+this.diameter/2);
+        return new BoundingBox(this.posX-this.diameter/2-1,this.posY-this.diameter/2-1,this.posX+this.diameter/2+2,this.posY+this.diameter/2+2);
     }
 });
 
@@ -75,23 +109,54 @@ window.onload = function() {
   document.body.insertBefore(canvas, document.body.childNodes[0]);
   canvas.onmousemove=function(evt){
     var mousePos = getMousePos(evt);
+    if(ball.fired === false) {
+        clearBall();
+        ball.posX = mousePos.x;
+        drawBall();
+    }
     movePaddle(mousePos.x);
   };
 };
 
 canvas.onmousedown = function(e){
+    if (gameOver === true){
+     location.href = window.location.href;
+    }
+
     if(gameStarted === false){
-        gameStarted=true;
+        gameStarted= true;
+        ball.fired = true;
         updateGameplay();
     }
 }
 window.onkeyup = function(e){
-    if(e.key === "p")
+    if(e.key === "p") {
         pause = !pause;
+        if(pause)
+            writeMessage(canvas.width/2-60, canvas.height/2, "GAME PAUSED");
+        else  writeMessage(canvas.width/2-60, canvas.height/2, "");
+    }
 }
 
 function startGame() {
-    writeMessage("Score: "+score);
+    //parse URL if user chose a certain level to play
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    var urlLevel = url.searchParams.get("level");
+    if(urlLevel){
+        thisLevelWasChosen = true;
+        currentLevelNumber = Number(urlLevel);
+    }
+    else {
+        if(!localStorage.lastLevel){
+            localStorage.lastLevel = 0;
+        }
+        currentLevelNumber = Number (localStorage.lastLevel);
+    }
+    chooseLevel();
+    updateBricksFromArray();
+    writeMessage(20,20,"Score: "+score);
+    writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
     drawPaddle();
     drawBall();
     drawSceneBricks();
@@ -107,6 +172,45 @@ function initialiseCanvasContext(){
 }
 
 
+function chooseLevel(){
+    currentLevelObject = levels[currentLevelNumber];
+    //count number of bricks
+    var arr = currentLevelObject.arr;
+    var nrBricks = 0;
+
+    for (var i=0, len=arr.length; i<len; i++)
+        for (var j=0, len2=arr[i].length; j<len2; j++)
+            if(arr[i][j]>0 && arr[i][j]!==9)//brick with number 9 is unbreakable
+                nrBricks ++;
+
+    currentLevelObject.nrBricks = nrBricks;
+}
+
+function updateBricksFromArray() {
+    var arr = currentLevelObject.arr;
+
+    for (var i = 0, len = arr.length; i < len; i++) {
+        for (var j = 0, len2 = arr[i].length; j < len2; j++) {
+            if(arr[i][j]>0){
+                let newBrick = {
+                    posX : (startingBricksPositionX + brick.width*j),
+                    posY : (startingBricksPositionY + brick.height*i),
+                    posArrayX : j,
+                    posArrayY : i,
+                    type : arr[i][j]
+                }
+                Object.defineProperty(newBrick, "boundingBox", {
+                    get: function() {
+                        return new BoundingBox(newBrick.posX,newBrick.posY,newBrick.posX+brick.width,newBrick.posY+brick.height);
+                    }
+                });
+                bricks.push(newBrick);
+            }
+        }
+    }
+}
+
+
 function getMousePos(evt) {
     var rect = canvas.getBoundingClientRect();
     return {
@@ -115,11 +219,11 @@ function getMousePos(evt) {
     };
 }
 
-function writeMessage(message) {
-    context.clearRect(0, 0, 10, 25);
+function writeMessage(x,y,message) {
+    context.clearRect(x, y-25, 200, 25);
     context.font = '18pt Calibri';
     context.fillStyle = 'black';
-    context.fillText(message, 10, 25);
+    context.fillText(message, x, y,200);
 }
 
 function drawBall(){
@@ -134,31 +238,29 @@ function drawPaddle(){
     context.fillRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
 }
 
-
-
 function clearBall(){
     context.clearRect(ball.posX-ball.diameter/2-1, ball.posY-ball.diameter/2-1, ball.diameter+2, ball.diameter+2);
 }
 
 function clearSceneBricks(){
-    context.clearRect(0, 0, canvas.width, canvas.height/2);
+    context.clearRect(0, startingBricksPositionY-2, canvas.width, canvas.height/2);
 }
+
 function drawSceneBricks(){
-  var arr=level1;
-  var startingPositionX = startingBricksPositionX;
-  var startingPositionY = startingBricksPositionY;
-  for (var i=0, len=arr.length; i<len; i++) {
-    for (var j=0, len2=arr[i].length; j<len2; j++) {
-        if(arr[i][j]!==0){
-          context.beginPath();
-          context.fillStyle = colorsBrick[arr[i][j]];
-          context.fillRect(startingPositionX+j*brick.width,startingPositionY+i*brick.height , brick.width, brick.height);
-          context.rect(startingPositionX+j*brick.width,startingPositionY+i*brick.height , brick.width, brick.height);
-          context.stroke();
-          context.closePath();
-        }
-      }
-    }
+    for (var i = 0; i < bricks.length; i++)
+        drawSingleBrick(bricks[i]);
+}
+
+
+function drawSingleBrick(currBrick){
+    context.beginPath();
+    context.fillStyle = colorsBrick[currBrick.type];
+    context.fillRect(startingBricksPositionX + currBrick.posArrayX * brick.width,
+        startingBricksPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+    context.rect(startingBricksPositionX + currBrick.posArrayX * brick.width,
+        startingBricksPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+    context.stroke();
+    context.closePath();
 }
 
 function updateGameplay(){
@@ -166,9 +268,11 @@ function updateGameplay(){
   var refresh=1000/fps;
   setInterval(function(){
       if(!pause) {
-          writeMessage("Score: "+score);
+          writeMessage(20,20,"Score: "+score);
+          writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
           clearBall();
           moveBall();
+          redrawBricksAroundBall();
           drawBall();
       }
       }, refresh);
@@ -187,7 +291,7 @@ function moveBall(){
   var x = ball.posX, y = ball.posY;
   var speed = ball.speed;
   var direction = ball.direction;
-  console.log(direction);
+
   switch(direction){
     case 0:x+=speed; break;
     case 45:x+=speed;y-=speed; break;
@@ -198,69 +302,134 @@ function moveBall(){
     case 270:y+=speed; break;
     case 315:x+=speed;y+=speed; break;
   }
+  ball.posX = x;
+  ball.posY = y;
 
   //check if ball is outside canvas
-  if(x>canvas.width){
-    x = canvas.width;
-    if(direction === 315) direction = 225;
-    else if(direction === 45) direction = 135;
-  }
-
-  if(x<0){
-    x = 0;
-    if(direction === 225) direction = 315;
-    else if(direction === 135) direction = 45;
-  }
-
-  if(y>canvas.height){
-    y = canvas.height;
-    if(direction === 315) direction = 45;
-    else if(direction === 225) direction = 135;
-  }
-
-  if(y<0){
-    if(direction === 135) direction = 225;
-    else if(direction === 45) direction = 315;
-    y=0;
-  }
+  calcDirOnWallCollision();
 
   //check if ball collides with paddle
-  if(onCollide(ball.boundingBox, paddle.boundingBox) === true){
-      if(direction === 225) direction = 135;
-      else if(direction === 315) direction = 45;
-      //move ball outside of the paddle
-      y = paddle.posY - 11;
-      //redraw paddle
-      movePaddle(paddle.posX);
-  }
- ball.posX = x;
- ball.posY = y;
- ball.direction = direction;
+  calcDirOnPaddleCollision();
 
-  //check if ball collides with a brick
-  //first calculate the position of the ball corresponding to the 2d array where the
-  //bricks are stored
-  var ballInArrayCoordX = (x - startingBricksPositionX)/brick.width;
-  var ballInArrayCoordY = (y - startingBricksPositionY)/brick.height;
-  var positionArrayX = Math.floor(ballInArrayCoordX);
-  var positionArrayY = Math.floor(ballInArrayCoordY);
-  if(positionArrayX >=0 && positionArrayX < level1[1].length)
-      if(positionArrayY >=0 && positionArrayY < level1.length)
-          if(level1[positionArrayY][positionArrayX]>0){
-              //increment score(score depends on brick type)
-              score += level1[positionArrayY][positionArrayX];
-              //collision
-              level1[positionArrayY][positionArrayX] = 0;
-              clearSceneBricks();
-              drawSceneBricks();
-              //calculate new position for the ball
-              calcDirOnBrickCollision(ballInArrayCoordX,ballInArrayCoordY, positionArrayY,positionArrayX);
-          }
+  checkIfCollisionWithBrick();
 }
 
-function calcDirOnBrickCollision(x, y, brickPosY, brickPosX) {
+function redrawBricksAroundBall(){
+    //only draw back brick - no need to clear it
+    if(ball.posY < canvas.height/2) {
+        var maxDistance = 80;
+        for (var i = 0; i < bricks.length; i++) {
+            var currBrick = bricks[i];
+            if (Math.abs(currBrick.posX - ball.posX) < maxDistance && Math.abs(currBrick.posY - ball.posY) < maxDistance)
+                //redraw this brick
+                drawSingleBrick(currBrick);
+        }
+    }
+}
+
+function checkIfCollisionWithBrick(){
+    //check if ball collides with a brick
+    //first calculate the position of the ball corresponding to the 2d array where the
+    //bricks are stored
+        for(var i=0 ;i<bricks.length;i++) {
+            var currBrick = bricks[i];
+            if (onCollide(ball.boundingBox, currBrick.boundingBox) === true) {
+                if (currBrick.type !== 9) {//brick with nr 9 in unbreakable
+                    destroyBrick(currBrick);
+                    //collision
+                    if (currentLevelObject.nrBricks === 0) {
+                        pause = true;
+                        writeMessage(canvas.width / 2 - 60, canvas.height / 2, "Level Cleared");
+                        if (!thisLevelWasChosen) {
+                            //reload the HTML file and the new level will be loaded because it is saved
+                            //in the localstorage
+                            localStorage.lastLevel = currentLevelNumber + 1;
+                            location.href = 'level.html';
+                        }
+                        else {
+                            location.href = 'level.html?level=' + (currentLevelNumber + 1);
+                        }
+
+                    }
+
+                }
+                //calculate new position for the ball
+                calcDirOnBrickCollision(currBrick.posX);
+            }
+        }
+}
+
+function destroyBrick(brickToDestroy){
+    var arr = currentLevelObject.arr;
+    //decrement brick number
+    currentLevelObject.nrBricks--;
+
+    score += brickToDestroy.type;
+    arr[brickToDestroy.posArrayY][brickToDestroy.posArrayX] = 0;
+    //remove brick from 'bricks' array
+    var index = bricks.indexOf(brickToDestroy);
+    if (index > -1) {
+        bricks.splice(index, 1);
+    }
+    clearSceneBricks();
+    drawSceneBricks();
+}
+
+function calcDirOnWallCollision() {
+    var x = ball.posX, y = ball.posY;
     var direction = ball.direction;
-    console.log("brick x="+brickPosX+" "+"y="+brickPosY+" collision with "+x+" "+y+" direction="+direction);
+
+    if(x>canvas.width){
+        x = canvas.width;
+        if(direction === 315) direction = 225;
+        else if(direction === 45) direction = 135;
+    }
+
+    if(x<0){
+        x = 0;
+        if(direction === 225) direction = 315;
+        else if(direction === 135) direction = 45;
+    }
+
+    if(y>canvas.height){
+        //game over
+        score = 0;
+        pause = true;
+        writeMessage(canvas.width/2-60, canvas.height/2, "Game Over, Click to restart level");
+        gameOver = true;
+    }
+
+    if(y<0){
+        if(direction === 135) direction = 225;
+        else if(direction === 45) direction = 315;
+        y=0;
+    }
+
+    ball.posX = x;
+    ball.posY = y;
+    ball.direction = direction;
+}
+
+
+function calcDirOnPaddleCollision(){
+    var x = ball.posX, y = ball.posY;
+    var direction = ball.direction;
+    if(onCollide(ball.boundingBox, paddle.boundingBox) === true){
+        if(direction === 225) direction = 135;
+        else if(direction === 315) direction = 45;
+        //move ball outside of the paddle
+        y = paddle.posY - 11;
+        //redraw paddle
+        movePaddle(paddle.posX);
+    }
+    ball.posX = x;
+    ball.posY = y;
+    ball.direction = direction;
+}
+
+function calcDirOnBrickCollision(brickPosX, brickPosY) {
+    var direction = ball.direction;
+    var x = ball.x;
     if((direction === 45 || direction === 315) && x < brickPosX)
         calcDirLeftSideBrick();
     else if((direction === 135 || direction === 225) && x > brickPosX)
@@ -275,16 +444,13 @@ function calcDirOnBrickCollision(x, y, brickPosY, brickPosX) {
 function calcDirLeftSideBrick(){
     // 45 -> 135
     // 315 -> 225
-    console.log("left1 dir="+ball.direction);
     if(ball.direction === 45) ball.direction = 135;
     else if(ball.direction === 315) ball.direction = 225;
-    console.log("left2 dir="+ball.direction);
 }
 
 function calcDirRightSideBrick(){
     // 135 -> 45
     // 225 -> 315
-    console.log("right");
     if(ball.direction === 135) ball.direction = 45;
     else if(ball.direction === 225) ball.direction = 315;
 }
@@ -292,7 +458,6 @@ function calcDirRightSideBrick(){
 function calcDirUpperSideBrick(){
     // 225 -> 135
     // 315 -> 45
-    console.log("upper");
     if(ball.direction === 225) ball.direction = 135;
     else if(ball.direction === 315) ball.direction = 45;
 }
@@ -300,10 +465,8 @@ function calcDirUpperSideBrick(){
 function calcDirLowerSideBrick(){
     // 135 -> 225
     // 45 -> 315
-    console.log("lower1 dir="+ball.direction);
     if(ball.direction === 135) ball.direction = 225;
     else if(ball.direction === 45) ball.direction = 315;
-    console.log("lower2 dir="+ball.direction);
 }
 
 function onCollide(bbox1, bbox2){
