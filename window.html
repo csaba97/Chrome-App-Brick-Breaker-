@@ -36,6 +36,10 @@
         <li>Your progress will be saved during gameplays<br>
         but you can play your favourite level choosing it<br>
             from this dropdown menu</li>
+        <li>
+            Every type of brick can be broken except the grey one(it is unbreakable)
+            <span><img src="grey_brick.png.bmp"></span>
+        </li>
     </ul>
 </div>
 <div class="dropdown">
@@ -57,7 +61,7 @@
 <script>
     function appendLevelsToList() {
         var ul = document.getElementById("levelList");
-        for(var i=0 ;i< 20 ;i++) {
+        for(var i=0 ;i< 10 ;i++) {
             var li = document.createElement("li");
             var link = document.createElement("a");
             link.appendChild(document.createTextNode("Level "+i));

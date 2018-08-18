@@ -8,10 +8,8 @@ var currentLevelNumber = 0;
 var currentLevelObject ;
 var startingBricksPositionX = 20;
 var startingBricksPositionY = 40;
-var canvas = document.createElement("canvas");
-initialiseCanvas();
+var canvas = document.getElementById("gameCanvas");
 var context=canvas.getContext("2d");
-initialiseCanvasContext();
 
 
 var levels =[
@@ -44,6 +42,84 @@ var levels =[
             [0,2,0,2,0,2,0],
             [2,0,2,0,2,0,2],
             [1,2,3,4,3,2,1],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [1,0,0,0,0,0,1],
+            [0,1,0,0,0,1,0],
+            [0,0,1,0,1,0,0],
+            [0,0,0,1,0,0,0],
+            [0,0,1,0,1,0,0],
+            [0,1,0,0,0,1,0],
+            [1,0,0,0,0,0,1],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,0,0,0,0,0,0],
+            [1,0,0,0,0,0,1],
+            [9,9,0,0,0,9,9],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [2,0,0,0,0,0,2],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,4,0,4,0,4,0],
+            [0,4,0,4,0,4,0],
+            [0,4,0,4,0,4,0],
+            [0,4,0,4,0,4,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,5,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [9,9,0,5,0,9,9],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [7,6,5,4,3,3,1],
+            [1,0,0,0,0,0,1],
+            [2,0,0,0,0,0,2],
+            [3,0,0,0,0,0,3],
+            [4,0,0,0,0,0,4],
+            [1,2,3,4,5,6,7],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [7,7,0,0,0,0,0],
+            [0,7,7,0,0,0,0],
+            [0,0,7,7,0,0,0],
+            [0,0,0,7,7,0,0],
+            [0,0,0,0,7,7,0],
+            [0,0,0,0,0,7,7],
         ],
         nrBricks : 0
     }
@@ -160,15 +236,6 @@ function startGame() {
     drawPaddle();
     drawBall();
     drawSceneBricks();
-}
-
-function initialiseCanvas(){
-  canvas.width = 480;
-  canvas.height = 600;
-}
-
-function initialiseCanvasContext(){
-  context.fillStyle="#FFFFFF";
 }
 
 
