@@ -305,15 +305,11 @@ function moveBall(){
 
 function redrawBricksAroundBall(){
     //only draw back brick - no need to clear it
-    var x = ball.posX;
-    var y = ball.posY;
-    if(y < canvas.height/2) {
+    if(ball.posY < canvas.height/2) {
         var maxDistance = 80;
-        var startingPositionX = startingBricksPositionX;
-        var startingPositionY = startingBricksPositionY;
         for (var i = 0; i < bricks.length; i++) {
             var currBrick = bricks[i];
-            if (Math.abs(currBrick.posX - x) < maxDistance && Math.abs(currBrick.posY - y) < maxDistance)
+            if (Math.abs(currBrick.posX - ball.posX) < maxDistance && Math.abs(currBrick.posY - ball.posY) < maxDistance)
                 //redraw this brick
                 drawSingleBrick(currBrick);
         }
@@ -324,8 +320,6 @@ function checkIfCollisionWithBrick(){
     //check if ball collides with a brick
     //first calculate the position of the ball corresponding to the 2d array where the
     //bricks are stored
-    var arr = currentLevelObject.arr;
-    var x = ball.posX, y = ball.posY;
         for(var i=0 ;i<bricks.length;i++) {
             var currBrick = bricks[i];
             if (onCollide(ball.boundingBox, currBrick.boundingBox) === true) {
