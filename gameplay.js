@@ -2,6 +2,8 @@ var fps = 60;
 var gameStarted = false;
 var score = 0;
 var pause = false;
+var gameOver = false;
+var thisLevelWasChosen = false;
 var currentLevelNumber = 0;
 var currentLevelObject ;
 var startingBricksPositionX = 20;
@@ -15,21 +17,22 @@ initialiseCanvasContext();
 var levels =[
     {
         arr : [
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,0,5,0,0],
-        ],
-        nrBricks : 0
-    },
-    {
-        arr : [
             [0,2,2,2,2,2,0],
             [0,2,0,0,0,2,0],
             [0,2,0,7,0,2,0],
             [0,2,0,0,0,2,0],
             [7,2,2,2,2,2,7],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,0,0,0,0,0,0],
+            [9,9,9,9,9,9,0],
+            [0,0,0,0,0,0,0],
+            [0,9,9,9,9,9,9],
+            [0,0,0,0,0,0,0],
+            [9,9,9,9,9,9,0],
         ],
         nrBricks : 0
     }
@@ -72,6 +75,7 @@ var ball = new function(){
     this.posY = paddle.posY-11,
     this.direction = 135,
     this.speed = 5
+    this.fired = false;
 }
 
 Object.defineProperty(ball, "boundingBox", {
@@ -93,13 +97,23 @@ window.onload = function() {
   document.body.insertBefore(canvas, document.body.childNodes[0]);
   canvas.onmousemove=function(evt){
     var mousePos = getMousePos(evt);
+    if(ball.fired === false) {
+        clearBall();
+        ball.posX = mousePos.x;
+        drawBall();
+    }
     movePaddle(mousePos.x);
   };
 };
 
 canvas.onmousedown = function(e){
+    if (gameOver === true){
+     location.href = window.location.href;
+    }
+
     if(gameStarted === false){
-        gameStarted=true;
+        gameStarted= true;
+        ball.fired = true;
         updateGameplay();
     }
 }
@@ -113,10 +127,20 @@ window.onkeyup = function(e){
 }
 
 function startGame() {
-    if(!localStorage.lastLevel){
-        localStorage.lastLevel = 0;
+    //parse URL if user chose a certain level to play
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    var urlLevel = url.searchParams.get("level");
+    if(urlLevel){
+        thisLevelWasChosen = true;
+        currentLevelNumber = Number(urlLevel);
     }
-    currentLevelNumber = Number (localStorage.lastLevel);
+    else {
+        if(!localStorage.lastLevel){
+            localStorage.lastLevel = 0;
+        }
+        currentLevelNumber = Number (localStorage.lastLevel);
+    }
     chooseLevel();
     writeMessage(20,20,"Score: "+score);
     writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
@@ -274,20 +298,31 @@ function checkIfCollisionWithBrick(){
     if(positionArrayX >=0 && positionArrayX < arr[1].length)
         if(positionArrayY >=0 && positionArrayY < arr.length)
             if(arr[positionArrayY][positionArrayX]>0){
-                //increment score(score depends on brick type)
-                score += arr[positionArrayY][positionArrayX];
-                //decrement brick number
-                currentLevelObject.nrBricks--;
-                //collision
-                arr[positionArrayY][positionArrayX] = 0;
-                clearSceneBricks();
-                drawSceneBricks();
+                if(arr[positionArrayY][positionArrayX]!=9) {//brick with nr 9 in unbreakable
+                    //increment score(score depends on brick type)
+                    score += arr[positionArrayY][positionArrayX];
+                    //decrement brick number
+                    currentLevelObject.nrBricks--;
+                    //collision
+                    arr[positionArrayY][positionArrayX] = 0;
+                    clearSceneBricks();
+                    drawSceneBricks();
+                }
                 //calculate new position for the ball
                 calcDirOnBrickCollision(ballInArrayCoordX,ballInArrayCoordY, positionArrayY,positionArrayX);
                 if(currentLevelObject.nrBricks == 0){
                     pause = true;
                     writeMessage(canvas.width/2-60, canvas.height/2, "Level Cleared");
-                    localStorage.lastLevel = currentLevelNumber + 1;
+                    if(!thisLevelWasChosen) {
+                        //reload the HTML file and the new level will be loaded because it is saved
+                        //in the localstorage
+                        localStorage.lastLevel = currentLevelNumber + 1;
+                        location.href='level.html';
+                    }
+                    else{
+                        location.href='level.html?level='+(currentLevelNumber+1);
+                    }
+
                 }
             }
 }
@@ -312,7 +347,8 @@ function calcDirOnWallCollision() {
         //game over
         score = 0;
         pause = true;
-        writeMessage(canvas.width/2-60, canvas.height/2, "Game Over");
+        writeMessage(canvas.width/2-60, canvas.height/2, "Game Over, Click to restart level");
+        gameOver = true;
     }
 
     if(y<0){
