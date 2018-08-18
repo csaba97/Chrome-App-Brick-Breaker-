@@ -43,6 +43,7 @@ var brick = {
   height : 20,
 };
 
+var bricks =[];
 
 var colorsBrick = {
   1 : "blue",
@@ -142,6 +143,7 @@ function startGame() {
         currentLevelNumber = Number (localStorage.lastLevel);
     }
     chooseLevel();
+    updateBricksFromArray();
     writeMessage(20,20,"Score: "+score);
     writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
     drawPaddle();
@@ -172,6 +174,31 @@ function chooseLevel(){
 
     currentLevelObject.nrBricks = nrBricks;
 }
+
+function updateBricksFromArray() {
+    var arr = currentLevelObject.arr;
+
+    for (var i = 0, len = arr.length; i < len; i++) {
+        for (var j = 0, len2 = arr[i].length; j < len2; j++) {
+            if(arr[i][j]>0){
+                let newBrick = {
+                    posX : (startingBricksPositionX + brick.width*j),
+                    posY : (startingBricksPositionY + brick.height*i),
+                    posArrayX : j,
+                    posArrayY : i,
+                    type : arr[i][j]
+                }
+                Object.defineProperty(newBrick, "boundingBox", {
+                    get: function() {
+                        return new BoundingBox(newBrick.posX,newBrick.posY,newBrick.posX+brick.width,newBrick.posY+brick.height);
+                    }
+                });
+                bricks.push(newBrick);
+            }
+        }
+    }
+}
+
 
 function getMousePos(evt) {
     var rect = canvas.getBoundingClientRect();
@@ -291,62 +318,48 @@ function checkIfCollisionWithBrick(){
     //bricks are stored
     var arr = currentLevelObject.arr;
     var x = ball.posX, y = ball.posY;
-    var ballInArrayCoordX = (x - startingBricksPositionX)/brick.width;
-    var ballInArrayCoordY = (y - startingBricksPositionY)/brick.height;
-    var posArrayX = Math.floor(ballInArrayCoordX);
-    var posArrayY = Math.floor(ballInArrayCoordY);
-    //check the adjacent bricks
-    for(var i=1;i<=9;i++){
-        var positionArrayX = posArrayX;
-        var positionArrayY = posArrayY;
-        switch(i){
-            case 1: break;
-            case 2: positionArrayX++; break;
-            case 3: positionArrayY++; break;
-            case 4: positionArrayX--; break;
-            case 5: positionArrayY--; break;
-            case 6: positionArrayX++;positionArrayY++; break;
-            case 7: positionArrayX++;positionArrayY--; break;
-            case 8: positionArrayX--;positionArrayY--; break;
-            case 9: positionArrayX--;positionArrayY++; break;
-        }
-        //make new bounding box
-        var xMin = startingBricksPositionX + positionArrayX*brick.width;
-        var yMin = startingBricksPositionY + positionArrayY*brick.height;
-        var bboxBrick = new BoundingBox(xMin,yMin,xMin+brick.width,yMin+brick.height);
-
-        if(onCollide(ball.boundingBox,bboxBrick) === true)
-            if(positionArrayX >=0 && positionArrayX < arr[1].length)
-                if(positionArrayY >=0 && positionArrayY < arr.length)
-                    if(arr[positionArrayY][positionArrayX]>0) {
-                        if (arr[positionArrayY][positionArrayX] != 9) {//brick with nr 9 in unbreakable
-                            //increment score(score depends on brick type)
-                            score += arr[positionArrayY][positionArrayX];
-                            //decrement brick number
-                            currentLevelObject.nrBricks--;
-                            //collision
-                            arr[positionArrayY][positionArrayX] = 0;
-                            clearSceneBricks();
-                            drawSceneBricks();
+        for(var i=0 ;i<bricks.length;i++) {
+            var currBrick = bricks[i];
+            if (onCollide(ball.boundingBox, currBrick.boundingBox) === true) {
+                if (currBrick.type !== 9) {//brick with nr 9 in unbreakable
+                    destroyBrick(currBrick);
+                    //collision
+                    if (currentLevelObject.nrBricks === 0) {
+                        pause = true;
+                        writeMessage(canvas.width / 2 - 60, canvas.height / 2, "Level Cleared");
+                        if (!thisLevelWasChosen) {
+                            //reload the HTML file and the new level will be loaded because it is saved
+                            //in the localstorage
+                            localStorage.lastLevel = currentLevelNumber + 1;
+                            location.href = 'level.html';
                         }
-                        //calculate new position for the ball
-                        calcDirOnBrickCollision(ballInArrayCoordX, ballInArrayCoordY, positionArrayY, positionArrayX);
-                        if (currentLevelObject.nrBricks == 0) {
-                            pause = true;
-                            writeMessage(canvas.width / 2 - 60, canvas.height / 2, "Level Cleared");
-                            if (!thisLevelWasChosen) {
-                                //reload the HTML file and the new level will be loaded because it is saved
-                                //in the localstorage
-                                localStorage.lastLevel = currentLevelNumber + 1;
-                                location.href = 'level.html';
-                            }
-                            else {
-                                location.href = 'level.html?level=' + (currentLevelNumber + 1);
-                            }
-
+                        else {
+                            location.href = 'level.html?level=' + (currentLevelNumber + 1);
                         }
+
                     }
+
+                }
+                //calculate new position for the ball
+                calcDirOnBrickCollision(currBrick.posX);
+            }
+        }
+}
+
+function destroyBrick(brickToDestroy){
+    var arr = currentLevelObject.arr;
+    //decrement brick number
+    currentLevelObject.nrBricks--;
+
+    score += brickToDestroy.type;
+    arr[brickToDestroy.posArrayY][brickToDestroy.posArrayX] = 0;
+    //remove brick from 'bricks' array
+    var index = bricks.indexOf(brickToDestroy);
+    if (index > -1) {
+        bricks.splice(index, 1);
     }
+    clearSceneBricks();
+    drawSceneBricks();
 }
 
 function calcDirOnWallCollision() {
@@ -401,8 +414,9 @@ function calcDirOnPaddleCollision(){
     ball.direction = direction;
 }
 
-function calcDirOnBrickCollision(x, y, brickPosY, brickPosX) {
+function calcDirOnBrickCollision(brickPosX, brickPosY) {
     var direction = ball.direction;
+    var x = ball.x;
     if((direction === 45 || direction === 315) && x < brickPosX)
         calcDirLeftSideBrick();
     else if((direction === 135 || direction === 225) && x > brickPosX)
