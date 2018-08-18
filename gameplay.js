@@ -11,19 +11,28 @@ initialiseCanvas();
 var context=canvas.getContext("2d");
 initialiseCanvasContext();
 
-var level1 ={
-    arr : [
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,3,1,0],
-        [1,2,3,4,5,6,7],
-    ],
-    nrBricks : 0
-};
 
 var levels =[
-    level1
+    {
+        arr : [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,0,5,0,0],
+        ],
+        nrBricks : 0
+    },
+    {
+        arr : [
+            [0,2,2,2,2,2,0],
+            [0,2,0,0,0,2,0],
+            [0,2,0,7,0,2,0],
+            [0,2,0,0,0,2,0],
+            [7,2,2,2,2,2,7],
+        ],
+        nrBricks : 0
+    }
 ];
 
 var brick = {
@@ -104,8 +113,13 @@ window.onkeyup = function(e){
 }
 
 function startGame() {
+    if(!localStorage.lastLevel){
+        localStorage.lastLevel = 0;
+    }
+    currentLevelNumber = Number (localStorage.lastLevel);
     chooseLevel();
     writeMessage(20,20,"Score: "+score);
+    writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
     drawPaddle();
     drawBall();
     drawSceneBricks();
@@ -167,7 +181,7 @@ function clearBall(){
 }
 
 function clearSceneBricks(){
-    context.clearRect(0, 0, canvas.width, canvas.height/2);
+    context.clearRect(0, startingBricksPositionY-2, canvas.width, canvas.height/2);
 }
 
 function drawSceneBricks(){
@@ -188,17 +202,27 @@ function drawSceneBricks(){
     }
 }
 
+
 function updateGameplay(){
   ball.speed = ball.speed * (60/fps);
   var refresh=1000/fps;
   setInterval(function(){
       if(!pause) {
           writeMessage(20,20,"Score: "+score);
+          writeMessage(canvas.width-100,20,"Level: "+currentLevelNumber);
           clearBall();
           moveBall();
           drawBall();
       }
       }, refresh);
+
+
+    setInterval(function(){
+        if(!pause) {
+            clearSceneBricks();
+            drawSceneBricks();
+        }
+    }, 200);
 }
 
 
@@ -263,6 +287,7 @@ function checkIfCollisionWithBrick(){
                 if(currentLevelObject.nrBricks == 0){
                     pause = true;
                     writeMessage(canvas.width/2-60, canvas.height/2, "Level Cleared");
+                    localStorage.lastLevel = currentLevelNumber + 1;
                 }
             }
 }
