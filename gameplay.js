@@ -2,6 +2,8 @@ var fps = 60;
 var gameStarted = false;
 var score = 0;
 var pause = false;
+var currentLevelNumber = 0;
+var currentLevelObject ;
 var startingBricksPositionX = 20;
 var startingBricksPositionY = 40;
 var canvas = document.createElement("canvas");
@@ -9,14 +11,21 @@ initialiseCanvas();
 var context=canvas.getContext("2d");
 initialiseCanvasContext();
 
+var level1 ={
+    arr : [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,3,1,0],
+        [1,2,3,4,5,6,7],
+    ],
+    nrBricks : 0
+};
 
-var level1 = [
-  [1,0,4,4,0,1,1],
-  [5,4,1,2,2,1,1],
-  [6,0,1,0,0,1,1],
-  [7,0,1,3,3,1,1],
-  [8,8,9,0,2,1,1],
+var levels =[
+    level1
 ];
+
 var brick = {
   width : 60,
   height : 20,
@@ -58,7 +67,7 @@ var ball = new function(){
 
 Object.defineProperty(ball, "boundingBox", {
     get: function() {
-        return new BoundingBox(this.posX-this.diameter/2,this.posY-this.diameter/2,this.posX+this.diameter/2,this.posY+this.diameter/2);
+        return new BoundingBox(this.posX-this.diameter/2-2,this.posY-this.diameter/2-2,this.posX+this.diameter/2+4,this.posY+this.diameter/2+4);
     }
 });
 
@@ -86,12 +95,17 @@ canvas.onmousedown = function(e){
     }
 }
 window.onkeyup = function(e){
-    if(e.key === "p")
+    if(e.key === "p") {
         pause = !pause;
+        if(pause)
+            writeMessage(canvas.width/2-60, canvas.height/2, "GAME PAUSED");
+        else  writeMessage(canvas.width/2-60, canvas.height/2, "");
+    }
 }
 
 function startGame() {
-    writeMessage("Score: "+score);
+    chooseLevel();
+    writeMessage(20,20,"Score: "+score);
     drawPaddle();
     drawBall();
     drawSceneBricks();
@@ -107,6 +121,20 @@ function initialiseCanvasContext(){
 }
 
 
+function chooseLevel(){
+    currentLevelObject = levels[currentLevelNumber];
+    //count number of bricks
+    var arr = currentLevelObject.arr;
+    var nrBricks = currentLevelObject.nrBricks;
+
+    for (var i=0, len=arr.length; i<len; i++)
+        for (var j=0, len2=arr[i].length; j<len2; j++)
+            if(arr[i][j]>0)
+                nrBricks ++;
+
+    currentLevelObject.nrBricks = nrBricks;
+}
+
 function getMousePos(evt) {
     var rect = canvas.getBoundingClientRect();
     return {
@@ -115,11 +143,11 @@ function getMousePos(evt) {
     };
 }
 
-function writeMessage(message) {
-    context.clearRect(0, 0, 10, 25);
+function writeMessage(x,y,message) {
+    context.clearRect(x, y-25, 200, 25);
     context.font = '18pt Calibri';
     context.fillStyle = 'black';
-    context.fillText(message, 10, 25);
+    context.fillText(message, x, y,200);
 }
 
 function drawBall(){
@@ -134,8 +162,6 @@ function drawPaddle(){
     context.fillRect(paddle.posX-paddle.width/2, paddle.posY, paddle.width, paddle.height);
 }
 
-
-
 function clearBall(){
     context.clearRect(ball.posX-ball.diameter/2-1, ball.posY-ball.diameter/2-1, ball.diameter+2, ball.diameter+2);
 }
@@ -143,8 +169,9 @@ function clearBall(){
 function clearSceneBricks(){
     context.clearRect(0, 0, canvas.width, canvas.height/2);
 }
+
 function drawSceneBricks(){
-  var arr=level1;
+  var arr = currentLevelObject.arr;
   var startingPositionX = startingBricksPositionX;
   var startingPositionY = startingBricksPositionY;
   for (var i=0, len=arr.length; i<len; i++) {
@@ -166,7 +193,7 @@ function updateGameplay(){
   var refresh=1000/fps;
   setInterval(function(){
       if(!pause) {
-          writeMessage("Score: "+score);
+          writeMessage(20,20,"Score: "+score);
           clearBall();
           moveBall();
           drawBall();
@@ -187,7 +214,7 @@ function moveBall(){
   var x = ball.posX, y = ball.posY;
   var speed = ball.speed;
   var direction = ball.direction;
-  console.log(direction);
+
   switch(direction){
     case 0:x+=speed; break;
     case 45:x+=speed;y-=speed; break;
@@ -198,69 +225,101 @@ function moveBall(){
     case 270:y+=speed; break;
     case 315:x+=speed;y+=speed; break;
   }
+  ball.posX = x;
+  ball.posY = y;
 
   //check if ball is outside canvas
-  if(x>canvas.width){
-    x = canvas.width;
-    if(direction === 315) direction = 225;
-    else if(direction === 45) direction = 135;
-  }
-
-  if(x<0){
-    x = 0;
-    if(direction === 225) direction = 315;
-    else if(direction === 135) direction = 45;
-  }
-
-  if(y>canvas.height){
-    y = canvas.height;
-    if(direction === 315) direction = 45;
-    else if(direction === 225) direction = 135;
-  }
-
-  if(y<0){
-    if(direction === 135) direction = 225;
-    else if(direction === 45) direction = 315;
-    y=0;
-  }
+  calcDirOnWallCollision();
 
   //check if ball collides with paddle
-  if(onCollide(ball.boundingBox, paddle.boundingBox) === true){
-      if(direction === 225) direction = 135;
-      else if(direction === 315) direction = 45;
-      //move ball outside of the paddle
-      y = paddle.posY - 11;
-      //redraw paddle
-      movePaddle(paddle.posX);
-  }
- ball.posX = x;
- ball.posY = y;
- ball.direction = direction;
+  calcDirOnPaddleCollision();
 
-  //check if ball collides with a brick
-  //first calculate the position of the ball corresponding to the 2d array where the
-  //bricks are stored
-  var ballInArrayCoordX = (x - startingBricksPositionX)/brick.width;
-  var ballInArrayCoordY = (y - startingBricksPositionY)/brick.height;
-  var positionArrayX = Math.floor(ballInArrayCoordX);
-  var positionArrayY = Math.floor(ballInArrayCoordY);
-  if(positionArrayX >=0 && positionArrayX < level1[1].length)
-      if(positionArrayY >=0 && positionArrayY < level1.length)
-          if(level1[positionArrayY][positionArrayX]>0){
-              //increment score(score depends on brick type)
-              score += level1[positionArrayY][positionArrayX];
-              //collision
-              level1[positionArrayY][positionArrayX] = 0;
-              clearSceneBricks();
-              drawSceneBricks();
-              //calculate new position for the ball
-              calcDirOnBrickCollision(ballInArrayCoordX,ballInArrayCoordY, positionArrayY,positionArrayX);
-          }
+  checkIfCollisionWithBrick();
+}
+
+function checkIfCollisionWithBrick(){
+    //check if ball collides with a brick
+    //first calculate the position of the ball corresponding to the 2d array where the
+    //bricks are stored
+    var arr = currentLevelObject.arr;
+    var x = ball.posX, y = ball.posY;
+    var ballInArrayCoordX = (x - startingBricksPositionX)/brick.width;
+    var ballInArrayCoordY = (y - startingBricksPositionY)/brick.height;
+    var positionArrayX = Math.floor(ballInArrayCoordX);
+    var positionArrayY = Math.floor(ballInArrayCoordY);
+    if(positionArrayX >=0 && positionArrayX < arr[1].length)
+        if(positionArrayY >=0 && positionArrayY < arr.length)
+            if(arr[positionArrayY][positionArrayX]>0){
+                //increment score(score depends on brick type)
+                score += arr[positionArrayY][positionArrayX];
+                //decrement brick number
+                currentLevelObject.nrBricks--;
+                //collision
+                arr[positionArrayY][positionArrayX] = 0;
+                clearSceneBricks();
+                drawSceneBricks();
+                //calculate new position for the ball
+                calcDirOnBrickCollision(ballInArrayCoordX,ballInArrayCoordY, positionArrayY,positionArrayX);
+                if(currentLevelObject.nrBricks == 0){
+                    pause = true;
+                    writeMessage(canvas.width/2-60, canvas.height/2, "Level Cleared");
+                }
+            }
+}
+
+function calcDirOnWallCollision() {
+    var x = ball.posX, y = ball.posY;
+    var direction = ball.direction;
+
+    if(x>canvas.width){
+        x = canvas.width;
+        if(direction === 315) direction = 225;
+        else if(direction === 45) direction = 135;
+    }
+
+    if(x<0){
+        x = 0;
+        if(direction === 225) direction = 315;
+        else if(direction === 135) direction = 45;
+    }
+
+    if(y>canvas.height){
+        //game over
+        score = 0;
+        pause = true;
+        writeMessage(canvas.width/2-60, canvas.height/2, "Game Over");
+    }
+
+    if(y<0){
+        if(direction === 135) direction = 225;
+        else if(direction === 45) direction = 315;
+        y=0;
+    }
+
+    ball.posX = x;
+    ball.posY = y;
+    ball.direction = direction;
+}
+
+
+function calcDirOnPaddleCollision(){
+    var x = ball.posX, y = ball.posY;
+    var direction = ball.direction;
+    if(onCollide(ball.boundingBox, paddle.boundingBox) === true){
+        if(direction === 225) direction = 135;
+        else if(direction === 315) direction = 45;
+        //move ball outside of the paddle
+        y = paddle.posY - 11;
+        //redraw paddle
+        movePaddle(paddle.posX);
+    }
+    ball.posX = x;
+    ball.posY = y;
+    ball.direction = direction;
 }
 
 function calcDirOnBrickCollision(x, y, brickPosY, brickPosX) {
     var direction = ball.direction;
-    console.log("brick x="+brickPosX+" "+"y="+brickPosY+" collision with "+x+" "+y+" direction="+direction);
     if((direction === 45 || direction === 315) && x < brickPosX)
         calcDirLeftSideBrick();
     else if((direction === 135 || direction === 225) && x > brickPosX)
@@ -275,16 +334,13 @@ function calcDirOnBrickCollision(x, y, brickPosY, brickPosX) {
 function calcDirLeftSideBrick(){
     // 45 -> 135
     // 315 -> 225
-    console.log("left1 dir="+ball.direction);
     if(ball.direction === 45) ball.direction = 135;
     else if(ball.direction === 315) ball.direction = 225;
-    console.log("left2 dir="+ball.direction);
 }
 
 function calcDirRightSideBrick(){
     // 135 -> 45
     // 225 -> 315
-    console.log("right");
     if(ball.direction === 135) ball.direction = 45;
     else if(ball.direction === 225) ball.direction = 315;
 }
@@ -292,7 +348,6 @@ function calcDirRightSideBrick(){
 function calcDirUpperSideBrick(){
     // 225 -> 135
     // 315 -> 45
-    console.log("upper");
     if(ball.direction === 225) ball.direction = 135;
     else if(ball.direction === 315) ball.direction = 45;
 }
@@ -300,10 +355,8 @@ function calcDirUpperSideBrick(){
 function calcDirLowerSideBrick(){
     // 135 -> 225
     // 45 -> 315
-    console.log("lower1 dir="+ball.direction);
     if(ball.direction === 135) ball.direction = 225;
     else if(ball.direction === 45) ball.direction = 315;
-    console.log("lower2 dir="+ball.direction);
 }
 
 function onCollide(bbox1, bbox2){
