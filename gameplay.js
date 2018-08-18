@@ -236,23 +236,21 @@ function clearSceneBricks(){
 }
 
 function drawSceneBricks(){
-  var arr = currentLevelObject.arr;
-  var startingPositionX = startingBricksPositionX;
-  var startingPositionY = startingBricksPositionY;
-  for (var i=0, len=arr.length; i<len; i++) {
-    for (var j=0, len2=arr[i].length; j<len2; j++) {
-        if(arr[i][j]!==0){
-          context.beginPath();
-          context.fillStyle = colorsBrick[arr[i][j]];
-          context.fillRect(startingPositionX+j*brick.width,startingPositionY+i*brick.height , brick.width, brick.height);
-          context.rect(startingPositionX+j*brick.width,startingPositionY+i*brick.height , brick.width, brick.height);
-          context.stroke();
-          context.closePath();
-        }
-      }
-    }
+    for (var i = 0; i < bricks.length; i++)
+        drawSingleBrick(bricks[i]);
 }
 
+
+function drawSingleBrick(currBrick){
+    context.beginPath();
+    context.fillStyle = colorsBrick[currBrick.type];
+    context.fillRect(startingBricksPositionX + currBrick.posArrayX * brick.width,
+        startingBricksPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+    context.rect(startingBricksPositionX + currBrick.posArrayX * brick.width,
+        startingBricksPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
+    context.stroke();
+    context.closePath();
+}
 
 function updateGameplay(){
   ball.speed = ball.speed * (60/fps);
@@ -315,17 +313,9 @@ function redrawBricksAroundBall(){
         var startingPositionY = startingBricksPositionY;
         for (var i = 0; i < bricks.length; i++) {
             var currBrick = bricks[i];
-            if (Math.abs(currBrick.posX - x) < maxDistance && Math.abs(currBrick.posY - y) < maxDistance) {
+            if (Math.abs(currBrick.posX - x) < maxDistance && Math.abs(currBrick.posY - y) < maxDistance)
                 //redraw this brick
-                context.beginPath();
-                context.fillStyle = colorsBrick[currBrick.type];
-                context.fillRect(startingPositionX + currBrick.posArrayX * brick.width,
-                    startingPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
-                context.rect(startingPositionX + currBrick.posArrayX * brick.width,
-                    startingPositionY + currBrick.posArrayY * brick.height, brick.width, brick.height);
-                context.stroke();
-                context.closePath();
-            }
+                drawSingleBrick(currBrick);
         }
     }
 }
