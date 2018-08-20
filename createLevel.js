@@ -90,7 +90,7 @@ function saveLevel(){
 
 
 function resetLevel(){
-
+  location.href = "levelEditor.html";
 }
 
 
