@@ -15,6 +15,19 @@ var colorsBrick = {
   9 : "gray",
 };
 
+
+var level = {
+    arr : [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+    ],
+    nrBricks : 0
+};
+
 createGrid();
 createMockBricks()
 
@@ -27,8 +40,7 @@ function createGrid(){
     divCanvas.appendChild(divOuter);
     for(let j=1;j<=nrBricksInRow;j++){
       let div = document.createElement("DIV");
-      div.setAttribute("ondrop","drop(event)");
-      div.setAttribute("ondragover","allowDrop(event)");
+
       if(i === 1){
         if(j==1)
           div.setAttribute("class","divCell divFirstRow divFirstInRow");
@@ -39,6 +51,11 @@ function createGrid(){
           div.setAttribute("class","divCell divFirstInRow");
         else   div.setAttribute("class","divCell");
       }
+
+      div.setAttribute("data-posX",j);
+      div.setAttribute("data-posY",i);
+      div.setAttribute("ondrop","drop(event)");
+      div.setAttribute("ondragover","allowDrop(event)");
       divOuter.appendChild(div);
     }
   }
@@ -58,4 +75,56 @@ function createMockBricks(){
     div.id = "mockBrick"+i;
     divOuter.appendChild(div);
   }
+}
+
+
+function saveLevel(){
+  if(!localStorage.createdlevelTotal){
+    localStorage.createdlevelTotal = 1;
+  }
+  else localStorage.createdlevelTotal ++;
+
+  localStorage["levelCreated"+localStorage.createdlevelTotal] = JSON.stringify(level);
+}
+
+
+function resetLevel(){
+
+}
+
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+}
+
+
+function drop(ev) {
+  ev.preventDefault();
+  var data=ev.dataTransfer.getData("text");
+  var nodeCopy = document.getElementById(data).cloneNode(true);
+  nodeCopy.removeAttribute("draggable");
+  nodeCopy.removeAttribute("ondragstart");
+  var targetEl = ev.target;
+  var posX = Number(targetEl.getAttribute("data-posX"));
+  var posY = Number(targetEl.getAttribute("data-posY"));
+  var color = nodeCopy.style.backgroundColor;
+  var colorNunmber = 1;
+  switch(color){
+    case "blue" :colorNunmber = 1; break;
+    case "purple" :colorNunmber = 2; break;
+    case "green" :colorNunmber = 3; break;
+    case "red" :colorNunmber = 4; break;
+    case "green" :colorNunmber = 5; break;
+    case "orange" :colorNunmber = 6; break;
+    case "violet" : colorNunmber = 7;break;
+    case "rgb(135,206,235)" :colorNunmber = 8; break;
+    case "gray" :colorNunmber = 9; break;
+  }
+  //save new brick into level array
+  level.arr[posY-1][posX-1] = colorNunmber;
+  targetEl.appendChild(nodeCopy);
 }

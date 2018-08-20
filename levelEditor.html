@@ -43,28 +43,8 @@
 
 <br />
 
-<button class="btn btn-primary">Save Level</button>
-<button class="btn btn-danger">Reset</button>
+<button class="btn btn-primary" onclick = 'saveLevel()'>Save Level</button>
+<button class="btn btn-danger" onclick = 'resetLevel()'>Reset</button>
 <script src="createLevel.js"></script>
-<script>
-function allowDrop(ev) {
-    ev.preventDefault();
-}
-
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
-}
-
-
-function drop(ev) {
-  ev.preventDefault();
-  var data=ev.dataTransfer.getData("text");
-  var nodeCopy = document.getElementById(data).cloneNode(true);
-  nodeCopy.id = "newId";
-  nodeCopy.removeAttribute("draggable");
-  nodeCopy.removeAttribute("ondragstart");
-  ev.target.appendChild(nodeCopy);
-}
-</script>
 </body>
 </html>
