@@ -25,7 +25,7 @@
 </head>
 
 
-<body onload=appendLevelsToList()>
+<body onload=initialise()>
 <h1>Brick Breaker game</h1>
 <br>
 <div>
@@ -63,10 +63,22 @@
 <hr />
 <h2>Or if you want you can make your own levels</h2>
 <button type="button" class="btn btn-primary" onclick="location.href='levelEditor.html'">Create Level</button>
-
-
+<br />
+<br />
+<br />
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose Created Level
+        <span class="caret"></span></button>
+    <ul id="createdLevelList" class="dropdown-menu scrollable-menu" role="menu">
+    </ul>
+</div>
 
 <script>
+    function initialise(){
+      appendLevelsToList();
+      appendCreatedLevelsToList();
+    }
+
     function appendLevelsToList() {
         var ul = document.getElementById("levelList");
         for(var i=0 ;i< 10 ;i++) {
@@ -74,6 +86,18 @@
             var link = document.createElement("a");
             link.appendChild(document.createTextNode("Level "+i));
             link.href = 'level.html?level='+i;
+            li.appendChild(link);
+            ul.appendChild(li);
+        }
+    }
+
+    function appendCreatedLevelsToList() {
+        var ul = document.getElementById("createdLevelList");
+        for(var i=1 ;i<=localStorage.createdlevelTotal ;i++) {
+            var li = document.createElement("li");
+            var link = document.createElement("a");
+            link.appendChild(document.createTextNode("Level "+i));
+            link.href = 'level.html?createdNumber='+i;
             li.appendChild(link);
             ul.appendChild(li);
         }

@@ -4,6 +4,9 @@ var score = 0;
 var pause = false;
 var gameOver = false;
 var thisLevelWasChosen = false;
+var thisLevelWasCreated = false;
+var urlCreatedNumber;
+
 var currentLevelNumber = 0;
 var currentLevelObject ;
 var startingBricksPositionX = 20;
@@ -26,7 +29,7 @@ var levels =[
     {
         arr : [
             [0,0,0,0,0,0,0],
-            [9,9,9,9,9,9,1],
+            [9,9,9,9,9,9,8],
             [0,0,0,0,0,0,0],
             [0,9,9,9,9,9,0],
             [0,0,0,0,0,0,0],
@@ -140,7 +143,7 @@ var colorsBrick = {
   5 : "green",
   6 : "orange",
   7 : "violet",
-  8 : "StateBlue",
+  8 : "rgb(135,206,235)",
   9 : "gray",
 };
 
@@ -219,9 +222,13 @@ function startGame() {
     var url_string = window.location.href;
     var url = new URL(url_string);
     var urlLevel = url.searchParams.get("level");
+    urlCreatedNumber = url.searchParams.get("createdNumber");
     if(urlLevel){
         thisLevelWasChosen = true;
         currentLevelNumber = Number(urlLevel);
+    }
+    else if(urlCreatedNumber){
+      thisLevelWasCreated = true;
     }
     else {
         if(!localStorage.lastLevel){
@@ -240,16 +247,22 @@ function startGame() {
 
 
 function chooseLevel(){
-    currentLevelObject = levels[currentLevelNumber];
-    //count number of bricks
-    var arr = currentLevelObject.arr;
+    var arr;
     var nrBricks = 0;
-
+    if(thisLevelWasCreated === true){
+      //this level was created
+      var levelNumber = urlCreatedNumber;//number of level
+      currentLevelObject = JSON.parse(localStorage["levelCreated"+levelNumber]);
+    }
+    else{
+      currentLevelObject = levels[currentLevelNumber];
+    }
+    arr = currentLevelObject.arr;
+    //count number of bricks
     for (var i=0, len=arr.length; i<len; i++)
         for (var j=0, len2=arr[i].length; j<len2; j++)
             if(arr[i][j]>0 && arr[i][j]!==9)//brick with number 9 is unbreakable
                 nrBricks ++;
-
     currentLevelObject.nrBricks = nrBricks;
 }
 
@@ -407,7 +420,11 @@ function checkIfCollisionWithBrick(){
                     if (currentLevelObject.nrBricks === 0) {
                         pause = true;
                         writeMessage(canvas.width / 2 - 60, canvas.height / 2, "Level Cleared");
-                        if (!thisLevelWasChosen) {
+                        if(thisLevelWasCreated === true){
+                          //go back to home
+                          location.href ="window.html";
+                        }
+                        else if (!thisLevelWasChosen) {
                             //reload the HTML file and the new level will be loaded because it is saved
                             //in the localstorage
                             localStorage.lastLevel = currentLevelNumber + 1;
