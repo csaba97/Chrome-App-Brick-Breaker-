@@ -85,6 +85,7 @@ function saveLevel(){
   else localStorage.createdlevelTotal ++;
 
   localStorage["levelCreated"+localStorage.createdlevelTotal] = JSON.stringify(level);
+  location.href = "window.html";
 }
 
 
