@@ -2,6 +2,7 @@
 var nrBricksInRow = 7;
 var nrBrickColums = 6;
 var divCanvas = document.getElementById("divCanvas");
+var globalBrick;
 
 var colorsBrick = {
   1 : "blue",
@@ -51,7 +52,8 @@ function createGrid(){
           div.setAttribute("class","divCell divFirstInRow");
         else   div.setAttribute("class","divCell");
       }
-
+      div.id = "gridDiv"+i+j;
+      div.setAttribute("onclick","setBrickFromClick('" + div.id + "')");
       div.setAttribute("data-posX",j);
       div.setAttribute("data-posY",i);
       div.setAttribute("ondrop","drop(event)");
@@ -61,6 +63,12 @@ function createGrid(){
   }
 }
 
+
+function setBrickFromClick(targetElId){
+  var nodeCopy = document.getElementById(globalBrick).cloneNode(true);
+  var targetEl = document.getElementById(targetElId);
+  setChildBrick(targetEl,nodeCopy);
+}
 
 function createMockBricks(){
   let divOuter = document.createElement("DIV");
@@ -73,10 +81,16 @@ function createMockBricks(){
     div.setAttribute("draggable","true");
     div.setAttribute("ondragstart","drag(event)");
     div.id = "mockBrick"+i;
+    var func = "setGlobalBrick('"+div.id+"')";
+    div.setAttribute("onclick",func);
     divOuter.appendChild(div);
   }
 }
 
+
+function setGlobalBrick(i){
+  globalBrick = i;
+}
 
 function saveLevel(){
   if(!localStorage.createdlevelTotal){
@@ -100,16 +114,13 @@ function allowDrop(ev) {
 
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
+    globalBrick = ev.target.id;
 }
 
-
-function drop(ev) {
-  ev.preventDefault();
-  var data=ev.dataTransfer.getData("text");
-  var nodeCopy = document.getElementById(data).cloneNode(true);
+function setChildBrick(targetEl, nodeCopy){
   nodeCopy.removeAttribute("draggable");
   nodeCopy.removeAttribute("ondragstart");
-  var targetEl = ev.target;
+
   var posX = Number(targetEl.getAttribute("data-posX"));
   var posY = Number(targetEl.getAttribute("data-posY"));
   var color = nodeCopy.style.backgroundColor;
@@ -128,4 +139,12 @@ function drop(ev) {
   //save new brick into level array
   level.arr[posY-1][posX-1] = colorNunmber;
   targetEl.appendChild(nodeCopy);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var data=ev.dataTransfer.getData("text");
+  var nodeCopy = document.getElementById(data).cloneNode(true);
+  var targetEl = ev.target;
+  setChildBrick(targetEl,nodeCopy);
 }
