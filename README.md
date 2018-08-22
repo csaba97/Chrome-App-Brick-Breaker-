@@ -1,6 +1,7 @@
 # Brick Breaker Chrome app
 ## About 
-- This app is a simple realization of the well-known brick breaker(arkanoid) game made in Javascript + Bootstrap + Canvas.
+- This app is a simple realization of the well-known brick breaker(arkanoid) game
+- it is made using Javascript + Bootstrap + Canvas.
 ## Features
 - 10 levels in total but adding new levels is fairly easy
 - contains a level editor where the user can create an unlimited number of levels and they will be saved in the browser's local storage
