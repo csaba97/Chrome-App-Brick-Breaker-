@@ -8,7 +8,7 @@
 ## How to use it
 - when starting the app, you are taken to the main screen  
 ![1](https://user-images.githubusercontent.com/37183688/44460166-c1749580-a614-11e8-824e-bfce3cec431c.png)  
-- here you can choose if you want to play a level chosen by you( with the help of the dropdown menu) or you can play the tournament version (you start with level 1 and your progress will be saved in the browser's local storage -> next time when you start the game you  start where you left)
+- here you can choose if you want to play a level chosen by you( with the help of the dropdown menu) or you can play the tournament version (you start with level 1 and your progress will be saved in the browser's local storage -> next time when you start the game you will start where you left the previous time)
   
 ![2](https://user-images.githubusercontent.com/37183688/44460167-c1749580-a614-11e8-9523-639b218f198d.png)      
 - after choosing your option you are taken to the gameplay screen where you can fire the ball by pressing the left mouse button
