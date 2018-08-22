@@ -16,9 +16,9 @@
 ![3](https://user-images.githubusercontent.com/37183688/44460168-c1749580-a614-11e8-84b0-61256da08cf8.png)  
 - as mentioned earlier you can create your own level
 - just drag and drop the colored mock bricks onto the grid or after clicking on a colored mock brick just click onto a cell in the grid where you want to place the brick and whoala  
-![4](https://user-images.githubusercontent.com/37183688/44460170-c1749580-a614-11e8-829f-f6cf882d4784.png)  
-- a new level created by me
-![5](https://user-images.githubusercontent.com/37183688/44460171-c20d2c00-a614-11e8-9eed-fd251f308db5.png)  
+![4](https://user-images.githubusercontent.com/37183688/44460170-c1749580-a614-11e8-829f-f6cf882d4784.png)    
+- a new level created by me  
+![5](https://user-images.githubusercontent.com/37183688/44460171-c20d2c00-a614-11e8-9eed-fd251f308db5.png)    
 - after pressing the save button you are taken to the main window where you can choose one of your saved levels   
 
 ![6](https://user-images.githubusercontent.com/37183688/44460165-c0dbff00-a614-11e8-97b2-833e23e34d83.png)   
