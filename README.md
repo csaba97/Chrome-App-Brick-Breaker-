@@ -1,5 +1,6 @@
 # Brick Breaker Chrome app
 ## About 
+- [Check out this short video on YouTube](https://youtu.be/WW4k1ehWaWI) 
 - This app is a simple realization of the well-known brick breaker(arkanoid) game
 - it is made using Javascript + Bootstrap + Canvas.
 ## Features
